@@ -70,9 +70,12 @@ $maleRate = 0;
 $femaleRate = 0;
 $unknownRate = 0;
 
-function getFullnameFromParts($splittedFioArr)
+function getFullnameFromParts($surname, $name, $patronomyc)
 {
-    $combinedFioStr = $splittedFioArr['surname'] . ' ' . $splittedFioArr['name'] .  ' ' . $splittedFioArr['patronomyc'];
+    // $surname = 'Иванов';
+    // $name = 'Иван';
+    // $patronomyc = 'Иванович';
+    $combinedFioStr = $surname . ' ' . $name . ' ' . $patronomyc;
     return $combinedFioStr;
 }
 
@@ -110,11 +113,11 @@ function getGenderFromName($fio)
     }
 
     if ($genderSign > 0) {
-        $gender = 'Мужчиной';
+        $gender = 'мужской (1)';
     } else if ($genderSign < 0) {
-        $gender = 'Женщиной';
+        $gender = 'женский (-1)';
     } else {
-        $gender = 'сложным для определения пола';
+        $gender = 'неопределенный (0)';
     }
 
     return $gender;
@@ -133,9 +136,9 @@ function getGenderDescription($personsArray)
 
     // Вычисляю кол-во вхождений разного пола. С фильтрцие получалось больше кода. Решил так сделать.
     $number_of_people = count($fio_arr);
-    $number_of_males = array_count_values($fio_arr)['Мужчиной'];
-    $number_of_females = array_count_values($fio_arr)['Женщиной'];
-    $number_of_unknown = array_count_values($fio_arr)['сложным для определения пола'];
+    $number_of_males = array_count_values($fio_arr)['мужской (1)'];
+    $number_of_females = array_count_values($fio_arr)['женский (-1)'];
+    $number_of_unknown = array_count_values($fio_arr)['неопределенный (0)'];
 
     // Вычисляю отношение и записывыаю в глобальные переменные
     global $maleRate;
@@ -152,13 +155,8 @@ function getGenderDescription($personsArray)
 
 function getPerfectPartner($surname, $name, $patronomyc, $arr)
 {
-    // Завожу строки в массив для функции getFullnameFromParts
-    $newPersonArr = [
-        'surname' => $surname,
-        'name' => $name,
-        'patronomyc' => $patronomyc,
-    ];
-    $newPersonFio = getFullnameFromParts($newPersonArr);
+    
+    $newPersonFio = getFullnameFromParts($surname, $name, $patronomyc);
 
     // Регистр каждого слова с заглавной    
     $newPersonFio = mb_convert_case($newPersonFio, MB_CASE_TITLE_SIMPLE);
@@ -166,7 +164,7 @@ function getPerfectPartner($surname, $name, $patronomyc, $arr)
     $randPerson = $arr[rand(0, count($arr) - 1)]['fullname'];
     $randPersonGender = getGenderFromName($randPerson);
 
-    if ($newPersonGender == 'сложным для определения пола') {
+    if ($newPersonGender == 'неопределенный (0)') {
         echo
         <<<HEREDOCLETTER
         Итак, на арену любви выходит новичок: $newPersonFio и старожил: $randPerson<br><br>
@@ -175,7 +173,7 @@ function getPerfectPartner($surname, $name, $patronomyc, $arr)
         HEREDOCLETTER;
     } else {
 
-        while ($randPersonGender == 'сложным для определения пола' || $newPersonGender == $randPersonGender) {
+        while ($randPersonGender == 'неопределенный (0)' || $newPersonGender == $randPersonGender) {
             $randPerson = $arr[rand(0, count($arr) - 1)]['fullname'];
             $randPersonGender = getGenderFromName($randPerson);
         }
@@ -226,7 +224,7 @@ function getPerfectPartner($surname, $name, $patronomyc, $arr)
                 echo "<p style='font-size:50px;'><b>$fullFio</b> </p>";
                 echo "<br><p>Нежно раcчленяем его функцией <b>getPartsFromFullname</b>:<br>";
                 echo "Фамилия: " . getPartsFromFullname($fullFio)['surname'] . ", имя: " . getPartsFromFullname($fullFio)['name'] . ", отчество: " . getPartsFromFullname($fullFio)['patronomyc'] . "</p> 
-                <br><p> И также нежно собираем обратно функцией <b>getFullnameFromParts</b>:<br> <span style='font-size:24px'> <span style = 'text-decoration:underline'> " . getFullnameFromParts(getPartsFromFullname($fullFio)) . "</span> и да, этот человек оказался <span style='text-decoration:underline'>" . getGenderFromName($fullFio) .  "</span></span></p>
+                <br><p> И также нежно собираем обратно функцией <b>getFullnameFromParts</b>:<br> <span style='font-size:24px'> <span style = 'text-decoration:underline'> " . getFullnameFromParts(getPartsFromFullname($fullFio)['surname'] ,getPartsFromFullname($fullFio)['name'] ,getPartsFromFullname($fullFio)['patronomyc']) . "</span><br> Пол: <span style='text-decoration:underline'>" . getGenderFromName($fullFio) .  "</span></span></p>
                 <br><p> Для безопасников сокращаем фамилию и отрезаем лишнее функцией <b>getShortName</b>:<br> <span style='font-size:24px; text-decoration:underline'>" . getShortName($fullFio) . "</span>";
                 ?>
 
@@ -271,10 +269,10 @@ function getPerfectPartner($surname, $name, $patronomyc, $arr)
                 <h4>А теперь поиграем в любовь</h4>
                 <?php
                 // Вариант с неопределенным полом
-                // getPerfectPartner('ниЦше', 'фРИдрих', 'Ви́ЛЬгельм', $example_persons_array)
+                // getPerfectPartner('ниЦше', 'фРИдрих', 'Ви́ЛЬгельм', $example_persons_array);
 
                 // Вариант с мужчиной
-                getPerfectPartner('Великий', 'Аркадий', 'Новиков', $example_persons_array)
+                getPerfectPartner('Великий', 'Аркадий', 'Новиков', $example_persons_array);
 
                 ?>
             </div>
